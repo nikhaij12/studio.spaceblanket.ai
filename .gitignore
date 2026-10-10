@@ -1,0 +1,11 @@
+node_modules/
+.next/
+tsconfig.tsbuildinfo
+.DS_Store
+
+# Your videos and their materials. Yours, not the app's.
+projects/
+
+# Licensed tracks are yours to hold a licence for, not this repo's to ship.
+music/*
+!music/README.md

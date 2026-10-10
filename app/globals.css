@@ -1,0 +1,1932 @@
+/* ===========================================================================
+   Studio by Spaceblanket.ai — a monochrome production desk.
+
+   Pure black keeps the work surface quiet; white is reserved for hierarchy,
+   actions, and the Spaceblanket mark. Michroma defines the brand voice, while
+   DM Sans and JetBrains Mono keep long-form content and live output legible.
+   ========================================================================== */
+
+:root {
+  --white: #ffffff;
+  --ig-violet: var(--white);
+  --ig-purple: var(--white);
+  --ig-magenta: var(--white);
+  --ig-rose: var(--white);
+  --ig-orange: var(--white);
+  --ig-gold: var(--white);
+  --ink: #000000;
+  --graphite: #080808;
+  --mark-slice: #ffffff;
+  --go-slice: #ffffff;
+  --reel-slice: #ffffff;
+
+  --chalk: #ffffff;
+  --ash: #b5b5b5;
+  --ash-dim: #777777;
+
+  --edge: rgba(255, 255, 255, 0.13);
+  --edge-strong: rgba(255, 255, 255, 0.4);
+  --lit: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  /* Two layers: a tight dark halo right at the edge is what reads as "lifted
+     off the page", plus the big soft one for depth. */
+  --drop: 0 2px 12px rgba(0, 0, 0, 0.9), 0 36px 82px -28px #000;
+  --blur: blur(28px);
+  --hair: rgba(255, 255, 255, 0.055);
+
+  --safelight: #ffffff;
+
+  --display: var(--font-display), "Michroma", system-ui, sans-serif;
+  --sans: var(--font-sans), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* One radius scale. Nested corners are concentric: an inner radius is the
+     outer one minus the gap between them, never a second guess. */
+  --r-panel: 22px;
+  --r-card: 14px;
+  --r-control: 11px;
+  --r-tile: 8px;
+
+  /* One tracking value for the whole mono register. Three uppercase labels at
+     the same size tracked at three different values is not a system. */
+  --track: 0.14em;
+
+  /* The frame around the page and the gutter between panels are held in a
+     deliberate ratio. They were 16 and 81 — the trio read as crammed against
+     the window and blown apart in the middle at the same time. */
+  --frame: 26px;
+  --gutter: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background-color: var(--ink);
+  color: var(--chalk);
+  font-family: var(--sans);
+  font-size: 14.5px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+::selection {
+  background: rgba(193, 53, 132, 0.45);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ig-magenta);
+  outline-offset: 2px;
+}
+
+/* The light behind the glass. Two big soft pools on the diagonal and one dim
+   warm one — barely there. An earlier version ran seven of these at three times
+   the opacity, which turned a near-black app into a purple-grey one: the colour
+   stopped being an accent and became the surface.
+
+   A fixed layer rather than `background-attachment: fixed` on the body, which
+   forces the whole compositing tree to repaint on every scroll. */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(56% 54% at -6% -10%, rgba(88, 81, 219, 0.16), transparent 70%),
+    radial-gradient(58% 60% at 104% 62%, rgba(245, 96, 64, 0.13), transparent 72%),
+    radial-gradient(36% 32% at 96% 108%, rgba(252, 175, 69, 0.07), transparent 74%);
+}
+
+/* Grain. Above the light, below everything else, so the whole surface has film
+   texture rather than a clean digital wash. */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.12;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.shell {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100vh;
+  /* More air under the bench than over it. A frame that is equal on all four
+     sides reads as bottom-heavy, because the panels are visually anchored down
+     there and the header is only type. */
+  padding: var(--frame) var(--frame) calc(var(--frame) + 12px);
+  gap: 15px;
+}
+
+/* ------------------------------------------------------------- the topline */
+
+/* No plate, no rule, no chrome. A wordmark and the state of the machine, sitting
+   directly on the room. The glass panel that used to be here was decoration
+   pretending to be structure — it framed nothing and separated nothing. */
+.topline {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  /* Sits on the same rail as the panel names below it: frame + border + the
+     panel's own 20px. A wordmark 15px adrift of the first heading under it is
+     the sort of thing nobody sees and everybody feels. */
+  padding: 2px 21px 0;
+  flex-shrink: 0;
+}
+
+/* The lockup: a mark and a word, on one optical baseline. Gradient type alone
+   was a flat sticker on the room — it had no edge to catch light on and nothing
+   to cast. The glyph gives the logo a body; the shadows give it a place. */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+}
+
+.brand-mark {
+  display: block;
+  flex-shrink: 0;
+}
+
+.mark {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(15px, 1.55vw, 20px);
+  line-height: 1.05;
+  letter-spacing: 0.015em;
+  color: #ffffff;
+}
+
+.mark[data-live="true"] {
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.3);
+}
+
+.state {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: var(--track);
+  margin-right: calc(var(--track) * -1);
+  text-transform: uppercase;
+  color: var(--ash-dim);
+}
+
+.led {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.state[data-state="building"] {
+  color: var(--ig-rose);
+}
+
+.state[data-state="building"] .led {
+  box-shadow: 0 0 10px 2px rgba(225, 48, 108, 0.75);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.state[data-state="replaying"] {
+  color: var(--ig-gold);
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* ------------------------------------------------------- the three panels */
+
+/* Materials, agent, reel — reading left to right. The widths are not a taste
+   call: the reel panel is as wide as a 9:16 video is when it is as tall as the
+   panel, the agent's column is the narrowest that keeps a line of prose
+   readable, and materials takes the remainder so its contact sheet lands on a
+   whole number of columns. The 48px tracks are the arrows. */
+.stage {
+  display: grid;
+  grid-template-columns:
+    minmax(400px, 1fr)
+    40px
+    minmax(300px, 0.72fr)
+    40px
+    minmax(400px, 1fr);
+  gap: var(--gutter);
+  min-height: 0;
+}
+
+.slab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  border-radius: var(--r-panel);
+  border: 1px solid var(--edge);
+  /* A soft specular bloom across the top, a white wash that does NOT fade to
+     nothing at the bottom (the ground is near-black, so a panel that fades out
+     stops reading as a panel), and a dark tint underneath so a slab over a lit
+     corner does not wash out. */
+  background:
+    radial-gradient(150% 42% at 50% -12%, rgba(255, 255, 255, 0.055), transparent 64%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.028)),
+    rgba(4, 4, 7, 0.55);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  box-shadow: var(--lit), var(--drop);
+  overflow: hidden;
+}
+
+/* The two ends of the bench are ranked by a hairline of hue, never by a
+   surface: where the thread enters, and where it lands. */
+.stage > .slab:first-child {
+  border-color: rgba(131, 58, 180, 0.24);
+}
+
+.stage > .slab:last-child {
+  border-color: rgba(252, 175, 69, 0.24);
+  background:
+    radial-gradient(150% 42% at 50% -12%, rgba(252, 175, 69, 0.05), transparent 64%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.028)),
+    rgba(4, 4, 7, 0.55);
+}
+
+/* No plate, no rule. The panel name sits on the panel, and the mono eyebrow
+   below it is what separates the heading from the content — one device doing
+   the job three strokes used to share. */
+.slab-head {
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+  padding: 20px 20px 12px;
+  flex-shrink: 0;
+}
+
+.slab-head h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: -0.032em;
+  color: var(--chalk);
+}
+
+/* ------------------------------------------------------------- the arrows */
+
+.flow {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+}
+
+/* Each arrow's halo is its own colour. One shared magenta glow meant a gold
+   arrow cast pink light, which cancels the direction the colour is carrying. */
+.stage > .flow:nth-child(2) {
+  filter: drop-shadow(0 0 8px rgba(131, 58, 180, 0.55));
+}
+
+.stage > .flow:nth-child(4) {
+  filter: drop-shadow(0 0 8px rgba(245, 96, 64, 0.55));
+}
+
+.scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  min-height: 0;
+  /* Hold the scrollbar's width whether or not one is showing. The contact sheet
+     sizes itself from this box, so a width that flickers would make the tile
+     count flicker with it. */
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+.empty {
+  margin: 0;
+  padding: 28px 20px;
+  color: var(--ash);
+  font-size: 13.5px;
+  max-width: 32ch;
+}
+
+/* The largest areas on the page are empty at the start of a demo, and they were
+   holding the smallest type on the page. A whisper in the middle of all that
+   space reads as unfinished rather than as waiting. */
+.void .empty,
+.placeholder {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: -0.011em;
+}
+
+/* An empty panel is an invitation, so it sits in the middle of the space it is
+   inviting you to fill rather than hiding in a corner. */
+.void {
+  display: grid;
+  place-items: center;
+  min-height: 100%;
+  padding: 24px;
+}
+
+.void .empty {
+  padding: 0;
+  text-align: center;
+  max-width: 18ch;
+}
+
+/* ------------------------------------------------- materials as a drop bin */
+
+/* The whole left panel is the target, not a strip inside it. A pile of your own
+   photographs is something you throw at a place; the place is this. */
+.bin {
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.bin[data-over="true"] {
+  border-color: rgba(193, 53, 132, 0.8);
+  box-shadow: var(--lit), var(--drop), 0 0 0 1px rgba(193, 53, 132, 0.45),
+    0 0 46px -8px rgba(193, 53, 132, 0.55);
+}
+
+/* The other half of the affordance. Dragging is invisible until you try it, so
+   there is a button that does the same thing, and a line saying you needn't use
+   it. The dashed rule is the drop-zone convention, spent once, at the edge of
+   the thing it describes. */
+.dock {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 20px 15px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.15);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.012), rgba(255, 255, 255, 0.05));
+}
+
+.pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 15px 9px 12px;
+  font-weight: 600;
+}
+
+.pick .ico {
+  opacity: 0.75;
+}
+
+.dock-hint {
+  font-size: 12.5px;
+  color: var(--ash-dim);
+}
+
+/* The second way in. Files are the loud one because most projects are files;
+   a link is the same act at a lower volume, so it is the same button without
+   the fill. */
+.pick.ghost {
+  background: transparent;
+  border: 1px solid var(--edge);
+  color: var(--ash);
+  font-weight: 500;
+}
+
+.pick.ghost:hover {
+  color: var(--chalk);
+  border-color: var(--edge-strong);
+}
+
+/* An upload in flight. It takes the whole dock, because the one thing it has
+   to do is be impossible to miss while you wait. */
+.adding {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.adding-say {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.adding-pct {
+  font-variant-numeric: tabular-nums;
+  color: var(--ash-dim);
+}
+
+.adding-rail {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.adding-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--go-slice);
+  transform-origin: left center;
+  /* The bar is driven by real bytes, so it only ever needs to catch up to the
+     last report — never to guess ahead of one. */
+  transition: transform 180ms linear;
+}
+
+.link-box {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 13px;
+  border: 1px solid var(--edge-strong);
+  border-radius: var(--r-control);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--chalk);
+  font-family: var(--sans);
+  font-size: 13px;
+  outline: none;
+}
+
+.link-box::placeholder {
+  color: var(--ash-dim);
+}
+
+/* A link is the one material you can add by mistyping it, so it is the one you
+   can take off again. It stays out of the way until the row is under the
+   pointer — a row of × buttons reads as a list of things to delete. */
+.unlink {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ash-dim);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 140ms ease, color 140ms ease, background 140ms ease;
+}
+
+.tracks li:hover .unlink,
+.unlink:focus-visible {
+  opacity: 1;
+}
+
+.unlink:hover {
+  color: var(--chalk);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* The link row is a link: it opens the page it names. */
+a.file {
+  text-decoration: none;
+  color: inherit;
+}
+
+a.file:hover .fname {
+  color: var(--ig-gold);
+}
+
+/* Shown only while something is over the panel: the one moment the interface
+   has to say yes. */
+.veil {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 140ms ease;
+  background: rgba(6, 5, 11, 0.74);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.bin[data-over="true"] .veil {
+  opacity: 1;
+}
+
+.veil-say {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 15px 24px;
+  border-radius: var(--r-card);
+  border: 1px dashed rgba(255, 255, 255, 0.45);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.011em;
+  color: var(--chalk);
+}
+
+/* ------------------------------------------------------ materials, by kind */
+
+/* Two shelves, photos and audio. Each is named and carries an icon, and that is
+   all: no counts, no folders, no filenames. */
+.shelf {
+  border-bottom: 1px solid var(--hair);
+  padding-bottom: 18px;
+}
+
+.shelf:last-child {
+  border-bottom: none;
+}
+
+/* The eyebrow register: mono, tracked, quiet. It never competes with the panel
+   name above it, which is the only Bricolage on the panel. */
+.shelf-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 18px 20px 12px;
+  color: var(--ash-dim);
+}
+
+.shelf-head .what {
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 10.5px;
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.ico {
+  flex-shrink: 0;
+  display: block;
+}
+
+/* A contact sheet stays a contact sheet: the tiles keep their size and the
+   column count grows with the panel, rather than four tiles ballooning. It is
+   capped at four rows so the audio shelf is always on screen under it — the
+   panel's job is to show the shape of the pile, not to be a photo browser. */
+.sheet {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
+  gap: 6px;
+  padding: 0 20px;
+}
+
+.sheet img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+  border-radius: var(--r-tile);
+  background: var(--graphite);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 220ms ease;
+}
+
+.sheet img:hover {
+  /* 5% growth fits inside the 6px grid gap, so a hovered tile never covers its
+     neighbour. */
+  transform: scale(1.07);
+  box-shadow: inset 0 0 0 1px var(--edge-strong), 0 10px 24px -6px rgba(0, 0, 0, 1);
+  z-index: 2;
+  position: relative;
+}
+
+/* The overflow count is the last tile, not a button under the grid: it keeps
+   the sheet rectangular and puts the number where the photos it stands for
+   would have been. */
+.tile-more {
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-tile);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: none;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ash);
+}
+
+.tile-more:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--edge-strong);
+  border-style: solid;
+  color: var(--chalk);
+}
+
+/* One row per source file: the voice take, and every track a bed was scored
+   from. A reel usually has more than one — this one runs a different bed under
+   each city.
+   These are drawn as files, with the real name and the real size, because the
+   panel is now a place you put files into and what is already in it has to look
+   like what you would put there. */
+.tracks {
+  list-style: none;
+  margin: 0;
+  padding: 0 20px;
+  display: grid;
+  gap: 7px;
+}
+
+.tracks li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 13px;
+  border-radius: var(--r-card);
+  border: 1px solid var(--hair);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.chip-ico {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ash);
+}
+
+.file {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+/* The filename is the one string on this page set in the machine register on
+   purpose: it is a filename, and it should look like one. */
+.fname {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--chalk);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fmeta {
+  font-size: 11.5px;
+  color: var(--ash-dim);
+}
+
+/* ------------------------------------------------------------ the build */
+
+.stream {
+  padding: 14px 0 20px;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 11px;
+  padding: 7px 20px;
+  align-items: baseline;
+  animation: rise 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* The end of the stream while a run is live. It sits in the label column's
+   gutter so it reads as another row of the log rather than a floating badge. */
+.working {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px 4px;
+  /* Line it up with the rows above: the label column plus its gap. */
+  margin-left: 89px;
+}
+
+.spinner {
+  width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.11);
+  border-top-color: var(--ig-rose);
+  border-right-color: var(--ig-orange);
+  animation: spin 760ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.working-say {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 10.5px;
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+/* The clock is the part that actually reassures: four minutes with a number on
+   it is patience, four minutes without one is worry. */
+.working-clock {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ash-dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+}
+
+.step .who {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 10.5px;
+  letter-spacing: var(--track);
+  /* Right-aligned tracked text carries a trailing letterspace; cancel it so the
+     labels rag cleanly against the column. */
+  margin-right: calc(var(--track) * -1);
+  text-transform: uppercase;
+  color: var(--ash-dim);
+  text-align: right;
+  padding-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.step .said {
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-width: 0;
+  font-size: 13.5px;
+}
+
+.step.text .said {
+  color: var(--chalk);
+}
+
+.step.thinking .said {
+  color: var(--ash);
+}
+
+/* The tool lines used to be a pastel lavender that is in no palette on this
+   page, and during a run they fill the centre of frame. They separate from
+   their label by value now, not by hue — which leaves the gold render
+   announcement as the only colour in the panel, rhyming with the frame around
+   the thing it is announcing. */
+.step.tool .who {
+  color: var(--ash-dim);
+}
+
+.step.tool .said {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ash);
+}
+
+.step.status .said,
+.step.done .said {
+  color: var(--ash);
+}
+
+.step.video .who,
+.step.video .said {
+  color: var(--ig-gold);
+}
+
+.step.error .who,
+.step.error .said {
+  color: var(--safelight);
+}
+
+/* ------------------------------------------------------------- composer */
+
+.composer {
+  flex-shrink: 0;
+  padding: 16px 20px 18px;
+  border-top: 1px solid var(--hair);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.012), rgba(255, 255, 255, 0.05));
+}
+
+.composer textarea {
+  display: block;
+  width: 100%;
+  min-height: 72px;
+  max-height: 200px;
+  resize: vertical;
+  padding: 13px 15px;
+  border-radius: var(--r-control);
+  border: 1px solid var(--edge);
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--chalk);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  outline: none;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.composer textarea::placeholder {
+  color: var(--ash-dim);
+}
+
+.composer textarea:focus {
+  border-color: rgba(193, 53, 132, 0.6);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6), 0 0 0 3px rgba(193, 53, 132, 0.18);
+}
+
+.composer textarea:disabled {
+  opacity: 0.5;
+}
+
+/* A textarea matches :focus-visible on a plain mouse click, so the global ring
+   fired on top of the custom one — two magenta rings at two offsets, on the box
+   that gets clicked into on camera. */
+.composer textarea:focus-visible {
+  outline: none;
+}
+
+/* Magenta on magenta is not a focus ring. */
+.go:focus-visible {
+  outline-color: var(--chalk);
+  outline-offset: 3px;
+}
+
+/* Failure speaks in the interface's voice, in place, in the one warm hue. */
+.notice {
+  margin: 11px 0 0;
+  padding: 9px 13px;
+  border-radius: var(--r-control);
+  border: 1px solid rgba(255, 107, 107, 0.45);
+  background: rgba(255, 107, 107, 0.13);
+  color: var(--safelight);
+  font-size: 12.5px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 12px;
+}
+
+/* ------------------------------------------------------------- controls */
+
+button {
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 9px 16px;
+  border-radius: var(--r-control);
+  border: 1px solid var(--edge);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.05));
+  color: var(--chalk);
+  box-shadow: var(--lit);
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--edge-strong);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* The one action on the page wears the spectrum, with a specular sheen across
+   the top so it reads as a lit piece of glass rather than a flat swatch. */
+.go {
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  max-width: 320px;
+  padding: 11px 26px;
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: #fff;
+  background: var(--go-slice);
+  border-color: rgba(255, 255, 255, 0.26);
+  text-shadow: 0 1px 2px rgba(60, 8, 40, 0.4);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.22) inset, 0 10px 30px -12px rgba(225, 48, 108, 0.75);
+}
+
+.go::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 46% 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent);
+  pointer-events: none;
+}
+
+.go:hover:not(:disabled) {
+  background: var(--go-slice);
+  filter: saturate(1.15) brightness(1.1);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+button:disabled {
+  opacity: 0.34;
+  cursor: not-allowed;
+}
+
+/* ------------------------------------------------------------- the reel */
+
+.lighttable {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Bloom behind the reel — the light table under the film, warmed toward the
+   magenta end of the spectrum so the finished reel sits in brand light. Kept
+   faint: it is a glow around the video, not a colour field. */
+.lighttable::before {
+  content: "";
+  position: absolute;
+  width: 70%;
+  height: 54%;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgba(252, 175, 69, 0.16),
+    rgba(245, 96, 64, 0.1) 60%,
+    transparent
+  );
+  filter: blur(44px);
+  pointer-events: none;
+}
+
+/* Where the thread ends. The finished reel is the only thing on the page framed
+   in the full spectrum — the arrows have been running toward this. A 1.5px
+   border, so it reads as a lit edge rather than a coloured box. */
+.filmframe {
+  position: relative;
+  display: block;
+  height: 100%;
+  max-width: 100%;
+  padding: 2px;
+  border-radius: var(--r-card);
+  background: var(--reel-slice);
+  box-shadow: 0 34px 80px -20px rgba(0, 0, 0, 1), 0 0 56px -12px rgba(252, 175, 69, 0.5);
+}
+
+/* The screen inside the frame. Its radius is the frame's minus the frame's
+   width, which is what keeps the two curves concentric instead of nested. */
+.screen {
+  position: relative;
+  display: block;
+  height: 100%;
+  border-radius: calc(var(--r-card) - 2px);
+  overflow: hidden;
+  /* If a window shape ever clamps the picture by width, what shows through is
+     black, never the frame's gradient. */
+  background: #000;
+}
+
+.screen video {
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  background: #000;
+  cursor: pointer;
+}
+
+/* Transport: one hairline of the spectrum measuring the reel, and a play glyph
+   that gets out of the way. No running time — that is the whole reason this
+   exists instead of the browser's own bar. */
+.transport {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 14px;
+  display: flex;
+  align-items: flex-end;
+  cursor: pointer;
+}
+
+.transport::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.played {
+  position: relative;
+  width: 100%;
+  height: 3px;
+  transform-origin: left;
+  background: var(--reel-slice);
+}
+
+.transport-play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  /* A defined pool of shade under the glyph rather than a wash over the whole
+     picture — the reel is the thing being looked at. */
+  background: radial-gradient(circle 62px at 50% 50%, rgba(0, 0, 0, 0.46), transparent 100%);
+  color: rgba(255, 255, 255, 0.95);
+  opacity: 1;
+  transition: opacity 220ms ease;
+}
+
+.transport-play svg {
+  width: 62px;
+  height: 62px;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.55));
+}
+
+/* Hovering a paused reel lifts the glyph to full strength. */
+.transport-play:hover,
+.transport-play:focus-visible {
+  opacity: 1;
+}
+
+/* A playing reel has no overlay at all — not a transparent one. This rule comes
+   after the hover rule deliberately: the two have equal specificity, and while
+   the hover rule won, crossing the picture with the pointer put a pool of shade
+   and a pause glyph back over a reel someone was watching. `pointer-events` goes
+   with the opacity so the element cannot be hovered while it is invisible; the
+   picture itself is the click target, and clicking it pauses. */
+.transport-play[data-playing="true"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Except by keyboard, where the control has to be findable to be usable. */
+.transport-play[data-playing="true"]:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Full screen. Sits quiet in the corner until the picture is pointed at, then
+   it is the only control on the reel besides the picture itself. */
+.expand {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 4;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: none;
+  color: rgba(255, 255, 255, 0.94);
+  opacity: 0.5;
+  transition: opacity 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.screen:hover .expand,
+.expand:focus-visible {
+  opacity: 1;
+}
+
+.expand:hover {
+  background: rgba(0, 0, 0, 0.72);
+  border-color: var(--edge-strong);
+}
+
+/* Expanded, the black mat is the whole screen and the picture sits centred in
+   it. The centring is `object-fit`, not layout: the panel's sizing rule is
+   `height: 100%` on the video, and 100% of an auto-sized box is indefinite —
+   the video falls back to its intrinsic 1080x1920 and runs off the bottom of the
+   screen. Filling the box and letting the picture letterbox inside it cannot
+   have that failure. */
+.screen:fullscreen {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+  background: #000;
+}
+
+.screen:fullscreen video {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: contain;
+}
+
+.screen:fullscreen .expand {
+  top: 20px;
+  right: 20px;
+}
+
+.placeholder {
+  position: relative;
+  margin: 0;
+  color: var(--ash);
+  text-align: center;
+  max-width: 17ch;
+}
+
+/* ------------------------------------------------------------ which reel */
+
+/* The switcher is a quiet control, not a nav bar: the app opens on a new reel,
+   so this is the way back to an old one rather than a gate in front of the
+   work. Achromatic like everything that is not a photograph — the spectrum is
+   spent on the arrows and the finished reel, and a coloured chip up here would
+   compete with the wordmark it sits beside. */
+.switcher {
+  position: relative;
+  margin-left: 4px;
+  flex-shrink: 0;
+}
+
+.here {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 260px;
+  padding: 6px 11px 6px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: var(--lit);
+  color: var(--ash);
+  font-family: var(--sans);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.here:hover,
+.here[data-open="true"] {
+  color: var(--chalk);
+  border-color: var(--edge-strong);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.here-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.here svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.reels {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 9px);
+  left: 0;
+  width: 300px;
+  padding: 7px;
+  border-radius: var(--r-card);
+  border: 1px solid var(--edge);
+  /* Opaque enough to read a filename through, because this floats over the
+     contact sheet and glass over photographs is a mess. */
+  background: rgba(14, 14, 17, 0.94);
+  backdrop-filter: var(--blur);
+  box-shadow: var(--drop);
+}
+
+.reel-rename,
+.reel-new,
+.reel-list button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: var(--r-control);
+  background: transparent;
+  color: var(--chalk);
+  font-family: var(--sans);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.reel-rename:hover:not(:disabled),
+.reel-new:hover:not(:disabled),
+.reel-list button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* Renaming happens in place, in the row that offered it. A dialog for one
+   short string is a interruption; a box where the word was is just the word,
+   editable. */
+.reel-name-box {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--edge-strong);
+  border-radius: var(--r-control);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--chalk);
+  font-family: var(--sans);
+  font-size: 13px;
+  outline: none;
+}
+
+.reel-name-box::placeholder {
+  color: var(--ash-dim);
+}
+
+.reel-new:disabled,
+.reel-list button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.reel-list li {
+  display: flex;
+  align-items: center;
+}
+
+.reel-list li > button:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The per-row delete: out of the way until the row is under the pointer, the
+   way the link × behaves in the materials panel. Scoped under the li so it
+   outweighs `.reel-list button` above — that shared rule's width: 100% would
+   otherwise win and hand the whole row to the bin. */
+.reel-list li > .reel-row-axe {
+  width: auto;
+  flex: none;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--r-control);
+  background: transparent;
+  color: var(--ash-dim);
+  font-family: var(--sans);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.reel-list li:hover > .reel-row-axe,
+.reel-list li > .reel-row-axe:focus-visible,
+.reel-list li > .reel-row-axe[data-sure] {
+  opacity: 1;
+}
+
+/* Deleting a reel has no undo, so the button never acts on its first click:
+   the first turns it red — the safelight, never the spectrum's own orange —
+   and makes it say what it is about to do; the second is on a button that
+   already told you. Closing the menu withdraws the question. */
+.reel-axe:hover:not(:disabled),
+.reel-axe[data-sure],
+.reel-list li > .reel-row-axe:hover,
+.reel-list li > .reel-row-axe[data-sure] {
+  color: var(--safelight);
+  background: rgba(255, 107, 107, 0.09);
+}
+
+.reel-new {
+  border-bottom: 1px solid var(--hair);
+  border-radius: var(--r-control) var(--r-control) 0 0;
+  padding-bottom: 11px;
+  margin-bottom: 4px;
+}
+
+.reel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+/* A date-stamped folder name is not how anyone remembers a reel. A frame out of
+   it is. */
+.reel-poster {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: var(--r-tile);
+  border: 1px solid var(--hair);
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--ash-dim);
+}
+
+.reel-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.reel-said {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.reel-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reel-meta {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ash-dim);
+}
+
+.reels-empty {
+  margin: 0;
+  padding: 10px 11px;
+  color: var(--ash-dim);
+  font-size: 12px;
+}
+
+/* ------------------------------------------------------------ the cuts */
+
+/* Every version this reel has been. It lives under the picture in the reel's
+   own end of the spectrum, because that is where the page has been heading and
+   these are all the same thing at different ages. */
+.takes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 20px 18px;
+  flex-shrink: 0;
+}
+
+.take {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ash);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.take:hover {
+  color: var(--chalk);
+  border-color: var(--edge-strong);
+}
+
+.take[data-on="true"] {
+  color: var(--ink);
+  border-color: transparent;
+  background: var(--reel-slice);
+  font-weight: 600;
+}
+
+/* Saying, where the message is written, that the message is about an older cut.
+   Hidden state would change what a sentence means without showing it. */
+.about {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 9px;
+  padding: 4px 5px 4px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(252, 175, 69, 0.4);
+  background: rgba(252, 175, 69, 0.1);
+  color: var(--ig-gold);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.about button {
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(252, 175, 69, 0.16);
+  color: inherit;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.about button:hover {
+  background: rgba(252, 175, 69, 0.3);
+}
+
+/* ------------------------------------------------------- what to say to it */
+
+/* The looks you have saved, above the box where you would ask for one — plus
+   the one chip that is an action rather than a memory: hand it a video whose
+   look you want, and the look joins this rail. It is how the rail gets its
+   first entry, so it is always here. */
+.styles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 9px;
+}
+
+.styles-what {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  color: var(--ash-dim);
+  margin-right: 2px;
+}
+
+.styles button {
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(252, 175, 69, 0.32);
+  background: rgba(252, 175, 69, 0.08);
+  color: var(--ig-gold);
+  font-family: var(--sans);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.styles button:hover {
+  background: rgba(252, 175, 69, 0.18);
+  border-color: rgba(252, 175, 69, 0.55);
+}
+
+/* A growing personal style library stays compact: the first three are always
+   ready to use, and this control reveals the remainder without hiding them. */
+.styles .styles-more {
+  border-style: dashed;
+  background: transparent;
+  color: var(--ash);
+}
+
+.styles .styles-more:hover {
+  color: var(--chalk);
+}
+
+/* Quieter than the styles it makes — dashed, ash — so a full rail still reads
+   as yours, with one door at the end of it. */
+.styles .style-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px dashed var(--edge-strong);
+  background: transparent;
+  color: var(--ash);
+}
+
+.styles .style-add:hover:not(:disabled) {
+  border-color: rgba(252, 175, 69, 0.55);
+  background: rgba(252, 175, 69, 0.06);
+  color: var(--ig-gold);
+}
+
+.styles .style-add:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Naming the style-to-be, in the place the chip was. */
+.styles .keep-box {
+  margin-left: 0;
+  width: 210px;
+}
+
+/* Naming a style, in the place the button was. */
+.keep-box {
+  margin-left: auto;
+  width: 190px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(252, 175, 69, 0.5);
+  background: rgba(252, 175, 69, 0.1);
+  color: var(--chalk);
+  font-family: var(--sans);
+  font-size: 12px;
+  outline: none;
+}
+
+.keep-box::placeholder {
+  color: var(--ash-dim);
+}
+
+/* Keeping a look you like. It sits on the heading rather than under the video
+   because it is about the video as a whole, not about the frame on screen. */
+.keep {
+  margin-left: auto;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: transparent;
+  color: var(--ash);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease;
+}
+
+.keep:hover:not(:disabled) {
+  color: var(--ig-gold);
+  border-color: rgba(252, 175, 69, 0.45);
+}
+
+.keep:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* --------------------------------------------------------- what it can do */
+
+/* The way to the one page of documentation. It is the quietest thing in the
+   header on purpose: it answers a question you have once, before you start, and
+   never again — so it must be findable and must not compete with the work. */
+.manual {
+  margin-left: auto;
+  color: var(--ash-dim);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: color 140ms ease;
+}
+
+.manual:hover {
+  color: var(--ash);
+}
+
+/* The documentation itself: one column of prose on the same ground, because a
+   white page would be a different application. */
+/* Its own scroller: `body` is `overflow: hidden` so the studio can be a fixed
+   three-panel frame, and a page of prose has to scroll somewhere. */
+.paper {
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+  padding: 26px 0 90px;
+  overflow-y: auto;
+}
+
+.paper-top {
+  max-width: 62ch;
+  margin: 0 auto 30px;
+  padding: 0 24px;
+}
+
+.back {
+  color: var(--ash-dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: color 140ms ease;
+}
+
+.back:hover {
+  color: var(--chalk);
+}
+
+.doc {
+  max-width: 62ch;
+  margin: 0 auto;
+  padding: 0 24px;
+  color: var(--ash);
+}
+
+.doc h1 {
+  margin: 0 0 14px;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 38px;
+  line-height: 1.05;
+  letter-spacing: -0.034em;
+  color: var(--chalk);
+}
+
+.doc h2 {
+  margin: 46px 0 14px;
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 10.5px;
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  color: var(--ash-dim);
+}
+
+.doc .lede {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  letter-spacing: -0.008em;
+}
+
+.doc .lede.small {
+  margin-top: 34px;
+  font-size: 14px;
+  color: var(--ash-dim);
+}
+
+.things,
+.tips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* An icon, then two short lines. The icon is what makes the list scannable,
+   which is what lets the prose be one sentence instead of three. */
+.things li {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 13px;
+  padding: 13px 0;
+  border-top: 1px solid var(--hair);
+}
+
+.things li:first-child {
+  border-top: none;
+}
+
+.things .mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--edge);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--ash);
+}
+
+.things h3 {
+  margin: 0 0 3px;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.012em;
+  color: var(--chalk);
+}
+
+.things p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+/* The sentence you would actually type. Mono, because it is a quotation from
+   the box rather than more prose about it. */
+.things .ask {
+  margin-top: 6px;
+  padding-left: 10px;
+  border-left: 2px solid rgba(252, 175, 69, 0.32);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ash-dim);
+}
+
+.tips li {
+  padding: 6px 0 6px 18px;
+  position: relative;
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+
+.tips li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 15px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--reel-slice);
+}
+
+.close {
+  margin: 52px 0 0;
+  padding-top: 22px;
+  border-top: 1px solid var(--hair);
+}
+
+/* ------------------------------------------------ Spaceblanket monochrome */
+
+::selection {
+  background: #ffffff;
+  color: #000000;
+}
+
+.ambient {
+  background: #000000;
+}
+
+.stage > .slab:first-child,
+.stage > .slab:last-child {
+  border-color: var(--edge);
+}
+
+.stage > .slab:last-child {
+  background:
+    radial-gradient(150% 42% at 50% -12%, rgba(255, 255, 255, 0.055), transparent 64%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.028)),
+    rgba(0, 0, 0, 0.9);
+}
+
+.stage > .flow:nth-child(2),
+.stage > .flow:nth-child(4) {
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.32));
+}
+
+.bin[data-over="true"] {
+  border-color: #ffffff;
+  box-shadow: var(--lit), var(--drop), 0 0 0 1px rgba(255, 255, 255, 0.45),
+    0 0 46px -8px rgba(255, 255, 255, 0.38);
+}
+
+.notice {
+  border-color: var(--edge-strong);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--chalk);
+}
+
+.go,
+.go:hover:not(:disabled) {
+  background: #ffffff;
+  border-color: #ffffff;
+  color: #000000;
+  text-shadow: none;
+  box-shadow: 0 0 24px -8px rgba(255, 255, 255, 0.55);
+  filter: none;
+}
+
+.go::after {
+  display: none;
+}
+
+.lighttable::before {
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.15), transparent 70%);
+}
+
+.filmframe {
+  box-shadow: 0 34px 80px -20px #000000, 0 0 40px -12px rgba(255, 255, 255, 0.45);
+}
+
+.about,
+.styles button,
+.keep-box {
+  border-color: rgba(255, 255, 255, 0.36);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--chalk);
+}
+
+.about button,
+.about button:hover,
+.styles button:hover,
+.styles .style-add:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.62);
+  color: var(--chalk);
+}
+
+.keep:hover:not(:disabled) {
+  color: var(--chalk);
+  border-color: var(--edge-strong);
+}
+
+.things .ask {
+  border-left-color: rgba(255, 255, 255, 0.4);
+}
+
+/* ---------------------------------------------------------- narrow window */
+
+@media (max-width: 1180px) {
+  body {
+    overflow: auto;
+  }
+
+  .shell {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .stage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Stacked, the arrows would point across nothing. */
+  .flow {
+    display: none;
+  }
+
+  .slab {
+    min-height: 320px;
+  }
+
+  .scroll {
+    max-height: 60vh;
+  }
+
+  .lighttable {
+    min-height: 420px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mark[data-live="true"],
+  .state[data-state="building"] .led,
+  .step {
+    animation: none;
+  }
+
+  .sheet img {
+    transition: none;
+  }
+
+  .sheet img:hover {
+    transform: none;
+  }
+}
