@@ -10,9 +10,11 @@ describe("styleSlug", () => {
 
 describe("saveStyle", () => {
   it("names the skill and the folder the studio will list", () => {
-    const prompt = saveStyle("Paris Nights");
+    const prompt = saveStyle("Paris Nights", "projects/paris", "out/final.mp4");
     expect(prompt).toContain('"Paris Nights"');
     expect(prompt).toContain(".claude/skills/paris-nights/SKILL.md");
+    expect(prompt).toContain("projects/paris/out/final.mp4");
+    expect(prompt).toContain("do not render another video");
   });
 });
 

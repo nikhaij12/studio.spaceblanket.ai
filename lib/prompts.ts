@@ -8,13 +8,27 @@
 // folder the studio lists back have to be the same folder.
 // ---------------------------------------------------------------------------
 
-export function saveStyle(name: string): string {
+export function saveStyle(name: string, project: string, video: string): string {
   return [
-    `Save this video's style as a reusable skill named "${name}".`,
-    `Write it to .claude/skills/${styleSlug(name)}/SKILL.md, describing the look, the`,
+    `Study the existing video at ${project}/${video}; do not render another video.`,
+    `Save its style as a reusable skill named "${name}".`,
+    `Write it to the studio-wide .claude/skills/${styleSlug(name)}/SKILL.md (not inside the project), describing the look, the`,
     `pacing, the captions and the music in enough detail to rebuild it on`,
-    `completely different material. Include any script you used.`,
+    `completely different material. Include any script you used and a one-line`,
+    `frontmatter description. Verify that the SKILL.md exists before finishing.`,
   ].join(" ");
+}
+
+/** A fresh Claude session must not mistake a style save for a render request. */
+export function frameStyleTurn(prompt: string, project: string): string {
+  return [
+    `This is a style-saving request, not a video-rendering request.`,
+    `The project folder is ${project}. Read the video named below,`,
+    `then write the reusable skill only in the studio-wide .claude/skills/ folder.`,
+    `Do not render a new video.`,
+    ``,
+    prompt,
+  ].join("\n");
 }
 
 export function useStyle(name: string): string {

@@ -3,8 +3,9 @@ node_modules/
 tsconfig.tsbuildinfo
 .DS_Store
 
-# Your videos and their materials. Yours, not the app's.
-projects/
+# Your videos and their materials. Anchor this at the root so the
+# app/api/projects route is never accidentally excluded from Git.
+/projects/
 
 # Licensed tracks are yours to hold a licence for, not this repo's to ship.
 music/*

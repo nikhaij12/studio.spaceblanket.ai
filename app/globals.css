@@ -1573,6 +1573,49 @@ button:disabled {
   width: 210px;
 }
 
+.style-name-form,
+.save-style-form,
+.video-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.style-name-form .keep-box {
+  width: min(210px, 100%);
+}
+
+.stage > .slab:last-child .slab-head {
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.video-actions {
+  margin-left: auto;
+}
+
+.video-actions .keep {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0;
+  text-decoration: none;
+}
+
+.save-style-form {
+  margin: 0 20px 12px;
+}
+
+.save-style-form .keep-box {
+  margin-left: 0;
+  flex: 1 1 150px;
+}
+
+.save-style-form button {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
 /* Naming a style, in the place the button was. */
 .keep-box {
   margin-left: auto;

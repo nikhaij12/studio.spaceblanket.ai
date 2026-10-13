@@ -55,6 +55,10 @@ export async function GET(
 
   const ext = path.extname(full).toLowerCase();
   let type = TYPES[ext] ?? "application/octet-stream";
+  const download = new URL(req.url).searchParams.get("download") === "1";
+  const disposition = download
+    ? `attachment; filename*=UTF-8''${encodeURIComponent(path.basename(full))}`
+    : null;
 
   // `?t=<width>` asks for a contact-sheet thumbnail instead of the original.
   // Only a fixed set of widths is honoured — an open parameter is a resize bomb.
@@ -105,6 +109,7 @@ export async function GET(
             "Content-Range": `bytes ${start}-${end}/${stat.size}`,
             "Accept-Ranges": "bytes",
             "Cache-Control": "no-cache",
+            ...(disposition ? { "Content-Disposition": disposition } : {}),
           },
         });
       }
@@ -122,6 +127,7 @@ export async function GET(
       "Content-Length": String(stat.size),
       "Accept-Ranges": "bytes",
       "Cache-Control": "no-cache",
+      ...(disposition ? { "Content-Disposition": disposition } : {}),
     },
   });
 }

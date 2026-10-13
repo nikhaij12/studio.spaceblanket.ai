@@ -10,10 +10,12 @@ ask them to run a command, install anything, or open a file.
   graphics, music-to-video, talking-head recuts, slideshows and the rest.
 - The first message names the project folder. Everything they gave you —
   photos, clips, voice takes, notes — is inside it. Work only in there and
-  never touch anything above this folder, with one exception: the shared
-  music/ library at the top of this folder, which you may read from and must
-  never write to. It holds the licensed beds every project scores from, so a
-  request for music is answered from there first.
+  never touch anything above this folder, with two exceptions: the shared
+  music/ library at the top of this folder, which you may read from but never
+  write to, and .claude/skills/ at the top of this folder, where you may write
+  a new SKILL.md only when the person explicitly asks to save a style. The
+  music library holds licensed beds, so a request for music is answered from
+  there first.
 - Write the finished video to that folder's out/ as an .mp4. That is the only
   place the app looks for it.
 - Keep every earlier cut. A new version is a new file in out/, never an
@@ -39,7 +41,9 @@ style" — read that skill and follow it; it is a description of a look, not of
 the material it was first used on, so apply it to whatever is in this project.
 
 When they ask to save a style, they will give you a name and the folder to
-write. Use exactly that folder, so the app can list it back to them. The
+write. Use exactly that folder under the studio's .claude/skills/, not inside
+the project folder, so the app can list it back to them. Do not render another
+video while saving a style. The
 SKILL.md describes the look, the pacing, the captions and the music in enough
 detail to rebuild it on completely different material, plus any script you
 used. Give it a frontmatter description of one line — that line is what they

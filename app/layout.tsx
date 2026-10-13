@@ -45,7 +45,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${sans.variable} ${display.variable} ${mono.variable}`}>
-      <body>{children}</body>
+      {/* Browser extensions can add attributes to body before React hydrates it. */}
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }

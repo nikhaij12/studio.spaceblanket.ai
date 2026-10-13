@@ -157,6 +157,9 @@ something. Opening the app creates nothing.
   your PATH. Run `claude` in a terminal; until that works, the studio can't.
 - **The middle panel says the run didn't start** — same thing. Check the
   terminal the studio is running in for the actual error.
+- **A hydration warning names `cz-shortcut-listen` on `<body>`** — a browser
+  extension added that attribute before React loaded. Try a private window or
+  turn off the extension for localhost. This is not caused by Node.js.
 - **Port 4321 is in use** — something else is on it. Run `npx next dev -p 4400`
   and open http://localhost:4400 instead; `start.command` reads `PORT` for the
   same reason.
@@ -175,6 +178,10 @@ something. Opening the app creates nothing.
   message; whatever it says there is the real error.
 - **Every render fails but the app is fine** — check `node -v`. Below 22, the
   renderer will not run.
+- **A style does not appear after saving** — wait for the confirmation message
+  in the studio. Saving analyzes the video with Claude Code; check that `claude`
+  is signed in and read any error in the Instructions panel. The style should
+  then appear under Your styles.
 - **It says it can't find music, or can't find a stock shot** — a bed comes from
   the `music/` folder in this repo, which ships empty; anything *found* rather
   than supplied needs the `heygen` CLI signed in (see "What you need").
@@ -211,9 +218,9 @@ question you have once, before you start.
 
 ## Saving a style, and using it again
 
-When a video looks the way you want, press Save this style, type a name, press
-return. That is the whole of it — the name is the only thing saving needs from
-you, because everything else the agent can read off the video it just made.
+When a video looks the way you want, press Save this style, type a name, and
+press Save style. Wait for confirmation; the studio checks that Claude actually
+wrote the reusable skill. To keep the finished MP4 itself, press Download video.
 
 The saved style then appears as a chip above the chat box, under Your styles.
 Click it and the sentence lands in the box: "Use my saved X style for this."
@@ -233,7 +240,7 @@ A style does not have to come from a video the studio made. New style from a
 video, at the end of the chips, takes a video you admire — yours or anyone's —
 uploads it into the project like any other clip, and has the agent study it:
 a few frames pulled out with ffmpeg and looked at on your own machine, no
-external service. Name it, press return, and the look joins the rail as a chip
+external service. Name it, press Save, and the look joins the rail as a chip
 you can apply to your own material.
 
 ## Everything is in this folder

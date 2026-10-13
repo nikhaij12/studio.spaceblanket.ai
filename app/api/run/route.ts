@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import path from "path";
 import { getSession, studioRoot } from "@/lib/session";
 import { projectFromRequest } from "@/lib/projects";
+import { frameStyleTurn } from "@/lib/prompts";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export async function POST(req: Request) {
   }
   const session = getSession(root);
 
-  let payload: { prompt?: unknown; record?: unknown; about?: unknown };
+  let payload: { prompt?: unknown; record?: unknown; about?: unknown; task?: unknown };
   try {
     payload = await req.json();
   } catch {
@@ -33,9 +34,12 @@ export async function POST(req: Request) {
 
   const record = payload.record === true ? defaultRecordName() : null;
   const about = typeof payload.about === "string" ? payload.about : null;
+  const savingStyle = payload.task === "save-style";
 
   const first = session.sessionId === null;
-  let framed = first ? frameFirstTurn(prompt, root) : prompt;
+  let framed = first
+    ? savingStyle ? frameStyleTurn(prompt, projectPath(root)) : frameFirstTurn(prompt, root)
+    : prompt;
   // The folder was renamed since the agent was told where it is. Say so once,
   // or it writes the next render into a path that no longer exists.
   if (!first && session.moved) {
@@ -44,7 +48,7 @@ export async function POST(req: Request) {
   }
   // Picking a past version in the rail is how you say "this one" — the agent is
   // told which cut is meant rather than being left to guess it is the newest.
-  if (about) framed = `${framed}\n\nI mean the cut at ${about}, not the newest one.`;
+  if (about && !savingStyle) framed = `${framed}\n\nI mean the cut at ${about}, not the newest one.`;
   // The panel shows what the operator asked, not the plumbing wrapped around it.
   session.start(framed, { record, shown: prompt });
 

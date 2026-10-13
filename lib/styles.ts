@@ -46,6 +46,8 @@ export type Style = {
   title: string;
   /** The skill's own one-line description, when it wrote one. */
   says: string | null;
+  /** Used to confirm that a save actually wrote or updated the file. */
+  updatedAt: number;
 };
 
 export function skillsRoot(): string {
@@ -67,10 +69,17 @@ export function listStyles(): Style[] {
     if (BUNDLED.has(entry.name)) continue;
     const skill = path.join(skillsRoot(), entry.name, "SKILL.md");
     if (!fs.existsSync(skill)) continue;
+    let updatedAt: number;
+    try {
+      updatedAt = fs.statSync(skill).mtimeMs;
+    } catch {
+      continue;
+    }
     out.push({
       name: entry.name,
       title: entry.name.replace(/[_-]+/g, " ").trim(),
       says: describe(skill),
+      updatedAt,
     });
   }
   return out.sort((a, b) => a.title.localeCompare(b.title));

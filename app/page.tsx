@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Track } from "@/lib/music";
-import { saveStyle, styleFromVideo, useStyle } from "@/lib/prompts";
+import { saveStyle, styleFromVideo, styleSlug, useStyle } from "@/lib/prompts";
 import type { ProjectSummary } from "@/lib/projects";
 import type { Style } from "@/lib/styles";
 import type { Version } from "@/lib/versions";
@@ -83,6 +83,7 @@ export default function Page() {
   // Which state request is the current one, so a slow early answer cannot
   // overwrite a fast later one.
   const loadSeq = useRef(0);
+  const pendingStyleRef = useRef<{ name: string; slug: string; previousUpdatedAt: number } | null>(null);
 
   const shelfRef = useRef<HTMLDivElement | null>(null);
   const sheetRef = useRef<HTMLDivElement | null>(null);
@@ -107,11 +108,17 @@ export default function Page() {
     setProjects(data.projects ?? []);
   }, []);
 
-  const loadStyles = useCallback(async () => {
-    const res = await fetch("/api/styles", { cache: "no-store" });
-    if (!res.ok) return;
-    const data = await res.json();
-    setStyles(data.styles ?? []);
+  const loadStyles = useCallback(async (): Promise<Style[] | null> => {
+    try {
+      const res = await fetch("/api/styles", { cache: "no-store" });
+      if (!res.ok) return null;
+      const data = await res.json();
+      const found: Style[] = data.styles ?? [];
+      setStyles(found);
+      return found;
+    } catch {
+      return null;
+    }
   }, []);
 
   /**
@@ -120,9 +127,22 @@ export default function Page() {
    * final event arrive in the opposite order.
    */
   const refreshStylesAfterRun = useCallback(() => {
-    void loadStyles();
+    const check = async (final = false) => {
+      const found = await loadStyles();
+      const pending = pendingStyleRef.current;
+      if (!pending) return;
+      const saved = found?.find((style) => style.name === pending.slug);
+      if (saved && saved.updatedAt > pending.previousUpdatedAt) {
+        pendingStyleRef.current = null;
+        setNotice(`Saved "${pending.name}". It is now in Your styles.`);
+      } else if (final) {
+        pendingStyleRef.current = null;
+        setNotice(`"${pending.name}" was not saved. Check the Instructions panel for the Claude error, then try again.`);
+      }
+    };
+    void check();
     for (const delay of [400, 1_200, 2_500]) {
-      window.setTimeout(() => void loadStyles(), delay);
+      window.setTimeout(() => void check(delay === 2_500), delay);
     }
   }, [loadStyles]);
 
@@ -296,18 +316,18 @@ export default function Page() {
 
   /** Say something to the agent. The composer is one caller; Save this style is another. */
   const ask = useCallback(
-    async (text: string) => {
+    async (text: string, options: { task?: "save-style"; projectSlug?: string } = {}) => {
       const said = text.trim();
       if (!said || running || busy) return false;
       setBusy(true);
       setNotice("");
       try {
-        const slug = await ensureProject();
+        const slug = options.projectSlug ?? await ensureProject();
         if (!slug) return false;
         const res = await fetch(`/api/run?p=${encodeURIComponent(slug)}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: said, about }),
+          body: JSON.stringify({ prompt: said, about, task: options.task }),
         });
         if (res.ok) {
           setAbout(null);
@@ -316,6 +336,9 @@ export default function Page() {
         }
         const data = await res.json().catch(() => ({}));
         setNotice(data.error ?? "The build did not start. Check the terminal running the app.");
+        return false;
+      } catch {
+        setNotice("Could not reach the studio. Check the terminal running the app.");
         return false;
       } finally {
         setBusy(false);
@@ -382,7 +405,7 @@ export default function Page() {
         await loadState(slug);
         // The answer travels back so a caller can see where its files landed —
         // the style-from-video flow needs the path to talk about the upload.
-        return ok ? data : null;
+        return ok ? { ...data, projectSlug: slug } : null;
       } catch {
         setNotice("Those files could not be added.");
         return null;
@@ -404,17 +427,52 @@ export default function Page() {
       const data = await add([file]);
       const rel = data?.added?.[0];
       if (!rel) return; // add() already said what went wrong
+      const slug = styleSlug(name);
+      if (!slug) {
+        setNotice("Give this style a name using letters or numbers.");
+        return;
+      }
+      pendingStyleRef.current = {
+        name,
+        slug,
+        previousUpdatedAt: styles.find((style) => style.name === slug)?.updatedAt ?? 0,
+      };
       // The chip is disabled during a run, but a run can begin while the
       // upload is in flight — and then the video is in the pile with nothing
       // saying why no style appeared.
-      if (!(await ask(styleFromVideo(name, rel)))) {
+      if (!(await ask(styleFromVideo(name, rel), { task: "save-style", projectSlug: data.projectSlug }))) {
+        pendingStyleRef.current = null;
         setNotice(
           `The video is in. Ask again for the "${name}" style once the current run finishes.`,
         );
+      } else {
+        setNotice(`Saving "${name}" from the reference video…`);
       }
     },
-    [add, ask],
+    [add, ask, styles],
   );
+
+  const saveCurrentStyle = async () => {
+    const name = naming?.trim() ?? "";
+    if (!name || !project || !video) return;
+    const slug = styleSlug(name);
+    if (!slug) {
+      setNotice("Give this style a name using letters or numbers.");
+      return;
+    }
+    pendingStyleRef.current = {
+      name,
+      slug,
+      previousUpdatedAt: styles.find((style) => style.name === slug)?.updatedAt ?? 0,
+    };
+    const ok = await ask(saveStyle(name, `projects/${project}`, video), { task: "save-style" });
+    if (!ok) {
+      pendingStyleRef.current = null;
+      return;
+    }
+    setNaming(null);
+    setNotice(`Saving "${name}" from the current video…`);
+  };
 
   /**
    * Delete a reel, for good. The server removes the folder and forgets its
@@ -871,25 +929,31 @@ export default function Page() {
                     New style from a video
                   </button>
                 ) : (
-                  /* The video is picked; the name is the only thing left to
-                     say, so the box appears where the button was. */
-                  <input
-                    className="keep-box"
-                    autoFocus
-                    value={styleName}
-                    placeholder="Name this style"
-                    onChange={(e) => setStyleName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        const name = styleName.trim();
-                        const file = styleVideo;
-                        setStyleVideo(null);
-                        if (name && file) void addStyleFromVideo(file, name);
-                      }
-                      if (e.key === "Escape") setStyleVideo(null);
+                  <form
+                    className="style-name-form"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const name = styleName.trim();
+                      const file = styleVideo;
+                      if (!name || !file) return;
+                      setStyleVideo(null);
+                      void addStyleFromVideo(file, name);
                     }}
-                    onBlur={() => setStyleVideo(null)}
-                  />
+                  >
+                    <input
+                      className="keep-box"
+                      autoFocus
+                      aria-label="Name the style from this video"
+                      value={styleName}
+                      placeholder="Name this style"
+                      onChange={(e) => setStyleName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") setStyleVideo(null);
+                      }}
+                    />
+                    <button type="submit" disabled={!styleName.trim()}>Save</button>
+                    <button type="button" onClick={() => setStyleVideo(null)}>Cancel</button>
+                  </form>
                 )}
                 <input
                   ref={styleFileRef}
@@ -948,36 +1012,44 @@ export default function Page() {
           <section className="slab">
             <div className="slab-head">
               <h2>The video</h2>
-              {/* A style is worth more than the video that carried it. Saving
-                  one is a sentence, not a feature: the button writes the
-                  sentence and you name the style yourself. */}
-              {video &&
-                (naming === null ? (
-                  <button className="keep" disabled={running} onClick={() => setNaming("")}>
+              {video && (
+                <div className="video-actions">
+                  <a
+                    className="keep"
+                    href={media(project, video, "download=1")}
+                    download={video.split("/").pop() ?? "studio-video.mp4"}
+                  >
+                    Download video
+                  </a>
+                  <button className="keep" disabled={running || busy} onClick={() => setNaming("")}>
                     Save this style
                   </button>
-                ) : (
-                  /* Name it here, in the place the button was. The name is the
-                     whole of what saving needs from you — everything else the
-                     agent can read off the video it just made. */
-                  <input
-                    className="keep-box"
-                    autoFocus
-                    value={naming}
-                    placeholder="Name this style"
-                    onChange={(e) => setNaming(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        const name = naming.trim();
-                        setNaming(null);
-                        if (name) void ask(saveStyle(name));
-                      }
-                      if (e.key === "Escape") setNaming(null);
-                    }}
-                    onBlur={() => setNaming(null)}
-                  />
-                ))}
+                </div>
+              )}
             </div>
+            {video && naming !== null && (
+              <form
+                className="save-style-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void saveCurrentStyle();
+                }}
+              >
+                <input
+                  className="keep-box"
+                  autoFocus
+                  aria-label="Name the current video's style"
+                  value={naming}
+                  placeholder="Name this style"
+                  onChange={(e) => setNaming(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") setNaming(null);
+                  }}
+                />
+                <button type="submit" disabled={!naming.trim() || running || busy}>Save style</button>
+                <button type="button" onClick={() => setNaming(null)}>Cancel</button>
+              </form>
+            )}
             <div className="lighttable">
               {video ? (
                 <Reel
@@ -1062,6 +1134,7 @@ type Answer = {
   added?: string[];
   rejected?: string[];
   materials?: Material[];
+  projectSlug?: string;
 };
 
 function postProgress(
