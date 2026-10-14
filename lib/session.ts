@@ -130,7 +130,7 @@ export class StudioSession {
    * Start (or continue) a run. Follow-up turns resume the same Claude Code
    * session so the agent keeps the context of everything it already built.
    */
-  start(prompt: string, opts: { record?: string | null; shown?: string } = {}) {
+  start(prompt: string, opts: { record?: string | null; shown?: string; forwardSubagentText?: boolean } = {}) {
     if (this.running) {
       this.emit("error", "busy", "A run is already in progress.");
       return;
@@ -141,7 +141,7 @@ export class StudioSession {
       : null;
     this.blocks.clear();
 
-    const args = buildArgs(prompt, this.sessionId);
+    const args = buildArgs(prompt, this.sessionId, opts.forwardSubagentText === true);
     // Anything in reel/out newer than this is something this run made.
     const startedAt = Date.now();
     this.emit("status", "asked", opts.shown ?? prompt);
@@ -503,7 +503,7 @@ const ALLOWED_TOOLS = [
   "TodoWrite",
 ].join(",");
 
-function buildArgs(prompt: string, sessionId: string | null): string[] {
+export function buildArgs(prompt: string, sessionId: string | null, forwardSubagentText: boolean): string[] {
   const args = [
     "-p",
     prompt,
@@ -511,9 +511,6 @@ function buildArgs(prompt: string, sessionId: string | null): string[] {
     "stream-json",
     "--verbose",
     "--include-partial-messages",
-    // The reel pipeline delegates to subagents; without this their work is a
-    // silent gap in the panel.
-    "--forward-subagent-text",
     // Unattended: the UI is the only operator, so nothing may block on a TTY
     // approval prompt. Without these the process hangs forever on first use.
     "--permission-mode",
@@ -521,6 +518,9 @@ function buildArgs(prompt: string, sessionId: string | null): string[] {
     "--allowedTools",
     ALLOWED_TOOLS,
   ];
+  // Optional observability: Claude Code versions before 2.1.211 reject this
+  // flag and fail the entire run before doing any work.
+  if (forwardSubagentText) args.push("--forward-subagent-text");
   // Note: --bare is deliberately NOT passed. It skips loading project skills,
   // and this app's skills are the whole pipeline.
   if (sessionId) args.push("--resume", sessionId);

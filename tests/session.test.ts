@@ -2,7 +2,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { dropSession, getSession } from "@/lib/session";
+import { buildArgs, dropSession, getSession } from "@/lib/session";
 
 // A real folder, because sessions resolve their project path.
 let project: string;
@@ -29,5 +29,15 @@ describe("dropSession", () => {
     await expect(
       dropSession(path.join(project, "never-opened")),
     ).resolves.toBeUndefined();
+  });
+});
+
+describe("Claude Code invocation", () => {
+  it("omits the optional subagent flag on older CLIs", () => {
+    expect(buildArgs("make a video", null, false)).not.toContain("--forward-subagent-text");
+  });
+
+  it("retains subagent streaming on compatible CLIs", () => {
+    expect(buildArgs("make a video", null, true)).toContain("--forward-subagent-text");
   });
 });

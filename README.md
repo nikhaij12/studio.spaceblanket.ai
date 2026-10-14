@@ -21,7 +21,7 @@ computer's terminal (for example, Claude Code or Codex). It works as a request
 on macOS, Linux, or Windows; the assistant should check your system and find
 your actual Documents folder before choosing commands.
 
-> Set up Studio by Spaceblanket.ai on my laptop from https://github.com/nikhaij12/studio.spaceblanket.ai: read its README, detect my operating system and Documents folder, clone it into a `studio-spaceblanket-ai` folder there without overwriting an existing copy, install only missing Git, Node.js 22 or newer, ffmpeg, Python 3, and official Claude Code CLI prerequisites, ask before administrator-level changes and let me complete Claude sign-in myself, run `npm install`, start the app, verify that it loads, leave it running, and tell me the exact local URL to open and anything I still need to do.
+> Set up Studio by Spaceblanket.ai on my laptop from https://github.com/nikhaij12/studio.spaceblanket.ai: read its README, detect my operating system and Documents folder, clone it into a `studio-spaceblanket-ai` folder there without overwriting an existing copy, install only missing Git, Node.js 22 or newer, ffmpeg, Python 3, and official Claude Code CLI prerequisites, ask before administrator-level changes and let me complete Claude sign-in myself, verify Claude reports that I am signed in, run `npm install`, start the app, verify that it loads, leave it running, and tell me the exact local URL to open and anything I still need to do.
 
 The assistant needs permission to run terminal commands on your laptop. It
 cannot sign in to Claude for you, and the `localhost` link it gives you works
@@ -37,8 +37,11 @@ reuse it or ask what to do, **not delete or replace it**.
    and [Claude Code setup guide](https://code.claude.com/docs/en/setup) if a
    prerequisite is missing. Installation may require your approval or an
    administrator password; do not paste passwords or login codes into a chat.
-2. Run `claude` once in a terminal and finish its interactive sign-in. A Claude
-   plan or Console account with Claude Code access is needed to make videos.
+2. Run `claude` once in a terminal and finish its interactive sign-in, then
+   check `claude auth status --text`. If it says "Not logged in," run
+   `claude auth login`. A Claude plan or Console account with Claude Code access
+   is needed to make videos. The Studio checks sign-in before a build or style
+   save and gives you a clear message instead of starting a doomed run.
 3. Clone [this repository](https://github.com/nikhaij12/studio.spaceblanket.ai) into
    Documents (or open the existing clone), then run `npm install` inside it.
 4. Run `npm run dev`, keep that terminal open, and open
@@ -170,12 +173,12 @@ something. Opening the app creates nothing.
   cause may be a platform-specific optional dependency, Node version, or
   network issue. If npm points specifically to an incompatible lockfile, try
   `npm install --package-lock=false` without deleting the tracked lockfile.
-- **The run starts and immediately stops** — three things do this. The `claude`
-  you have works but has no credit or no subscription attached; or it is old
-  enough not to know `--permission-mode dontAsk` and exits on the unknown flag
-  (`claude --version` must be 2.1 or newer); or you are on Windows and what is
-  on your PATH is a `.cmd` shim. Run `claude` in a terminal and send it one
-  message; whatever it says there is the real error.
+- **The run starts and immediately stops** — check `claude auth status --text`
+  first, then `claude --version`. Studio works with Claude Code 2.1 or newer;
+  versions below 2.1.211 simply omit the optional subagent-text streaming flag.
+  On Windows, a `.cmd` shim on PATH can also prevent the process from starting.
+  Run `claude` in a terminal and send it one message if the cause is still
+  unclear.
 - **Every render fails but the app is fine** — check `node -v`. Below 22, the
   renderer will not run.
 - **A style does not appear after saving** — wait for the confirmation message
@@ -360,13 +363,15 @@ a courtesy to your future self, never the thing that fails a finished render.
   since it is the one thing worth being able to reproduce by hand:
 
       claude -p <prompt> --output-format stream-json --verbose \
-        --include-partial-messages --forward-subagent-text \
+        --include-partial-messages [--forward-subagent-text] \
         --permission-mode dontAsk \
         --allowedTools Read,Write,Edit,Glob,Grep,Bash,WebFetch,WebSearch,Skill,Task,TodoWrite \
         [--resume <session id>]
 
-  with the cwd set to this folder, the environment inherited plus
-  `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0`, stdin ignored, and no `--model` —
+  The bracketed flag is used only with Claude Code 2.1.211 or newer; older
+  versions reject it. The command runs with the cwd set to this folder, the
+  environment inherited plus `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0`, stdin
+  ignored, and no `--model` —
   so it runs whatever model you have set as your default. The first turn names
   the `hyperframes` skill and the project path; every later turn passes
   `--resume` so feedback lands in the same session. It names the router rather

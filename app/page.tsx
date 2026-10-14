@@ -440,16 +440,17 @@ export default function Page() {
       // The chip is disabled during a run, but a run can begin while the
       // upload is in flight — and then the video is in the pile with nothing
       // saying why no style appeared.
+      const blockedByRun = running || busy;
       if (!(await ask(styleFromVideo(name, rel), { task: "save-style", projectSlug: data.projectSlug }))) {
         pendingStyleRef.current = null;
-        setNotice(
-          `The video is in. Ask again for the "${name}" style once the current run finishes.`,
-        );
+        if (blockedByRun) {
+          setNotice(`The video is in. Ask again for the "${name}" style once the current run finishes.`);
+        }
       } else {
         setNotice(`Saving "${name}" from the reference video…`);
       }
     },
-    [add, ask, styles],
+    [add, ask, busy, running, styles],
   );
 
   const saveCurrentStyle = async () => {

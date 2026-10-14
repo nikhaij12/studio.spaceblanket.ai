@@ -3,6 +3,7 @@ import path from "path";
 import { getSession, studioRoot } from "@/lib/session";
 import { projectFromRequest } from "@/lib/projects";
 import { frameStyleTurn } from "@/lib/prompts";
+import { checkClaudeReady } from "@/lib/claude-cli";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "A run is already in progress." }, { status: 409 });
   }
 
+  const claude = await checkClaudeReady();
+  if (!claude.ready) {
+    return NextResponse.json({ error: claude.error }, { status: 503 });
+  }
+
   const record = payload.record === true ? defaultRecordName() : null;
   const about = typeof payload.about === "string" ? payload.about : null;
   const savingStyle = payload.task === "save-style";
@@ -50,7 +56,7 @@ export async function POST(req: Request) {
   // told which cut is meant rather than being left to guess it is the newest.
   if (about && !savingStyle) framed = `${framed}\n\nI mean the cut at ${about}, not the newest one.`;
   // The panel shows what the operator asked, not the plumbing wrapped around it.
-  session.start(framed, { record, shown: prompt });
+  session.start(framed, { record, shown: prompt, forwardSubagentText: claude.forwardSubagentText });
 
   return NextResponse.json({ ok: true, record });
 }
